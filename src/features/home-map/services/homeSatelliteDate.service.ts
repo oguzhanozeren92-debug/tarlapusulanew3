@@ -11,6 +11,9 @@ export type HomeSatelliteSceneInfo = {
   cloudCover: number | null;
   collection: string;
   sceneId: string;
+  redUrl: string | null;
+  nirUrl: string | null;
+  parcelRing: Position[];
 };
 
 function isPosition(value: unknown): value is Position {
@@ -30,7 +33,7 @@ function asRing(value: unknown): Position[] | null {
   return ring.length >= 3 ? ring : null;
 }
 
-function getExteriorRing(source: unknown): Position[] | null {
+export function getHomeFieldExteriorRing(source: unknown): Position[] | null {
   if (!source) return null;
 
   if (Array.isArray(source)) {
@@ -64,13 +67,13 @@ function getExteriorRing(source: unknown): Position[] | null {
 }
 
 /**
- * Returns metadata for the newest sufficiently clear Sentinel-2 L2A scene
- * intersecting the selected parcel. No mock/fallback values are generated.
+ * Returns metadata and analysis assets for the newest sufficiently clear
+ * Sentinel-2 L2A scene intersecting the selected parcel.
  */
 export async function fetchHomeSatelliteScene(
   parcelGeometry: unknown,
 ): Promise<HomeSatelliteSceneInfo | null> {
-  const ring = getExteriorRing(parcelGeometry);
+  const ring = getHomeFieldExteriorRing(parcelGeometry);
   if (!ring) return null;
 
   const scene = await findLatestSentinel2Scene({
@@ -89,6 +92,9 @@ export async function fetchHomeSatelliteScene(
         : null,
     collection: String(scene.collection ?? 'sentinel-2-l2a'),
     sceneId: String(scene.id ?? ''),
+    redUrl: scene.redUrl,
+    nirUrl: scene.nirUrl,
+    parcelRing: ring,
   };
 }
 
