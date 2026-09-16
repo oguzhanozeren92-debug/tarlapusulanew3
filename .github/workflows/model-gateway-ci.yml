@@ -1,0 +1,40 @@
+name: Model Gateway CI
+
+on:
+  pull_request:
+    paths:
+      - 'services/model-gateway/**'
+      - 'render.yaml'
+      - '.github/workflows/model-gateway-ci.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'services/model-gateway/**'
+      - 'render.yaml'
+      - '.github/workflows/model-gateway-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  gateway:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/model-gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: services/model-gateway/.python-version
+          cache: pip
+          cache-dependency-path: services/model-gateway/requirements.txt
+      - name: Install pinned model dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Verify dependency and import health
+        run: |
+          python -m pip check
+          python -m py_compile app.py engine_registry.py pcse_runner.py aquacrop_runner.py pyfao56_dual_runner.py
+      - name: Run model gateway smoke check
+        run: python smoke_test.py
