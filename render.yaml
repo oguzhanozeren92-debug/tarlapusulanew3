@@ -2,11 +2,11 @@ services:
   - type: web
     name: tarlapusula-model-gateway-shadow
     runtime: python
-    repo: https://github.com/oguzhanozeren92-debug/new2
+    repo: https://github.com/oguzhanozeren92-debug/tarlapusulanew3
     branch: main
     plan: free
     region: frankfurt
-    autoDeploy: false
+    autoDeployTrigger: off
     buildCommand: cd services/model-gateway && pip install -r requirements.txt
     startCommand: cd services/model-gateway && uvicorn app:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
