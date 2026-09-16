@@ -1,4 +1,6 @@
+import { CalendarDays, CloudSun, House, MapPinned, Sparkles } from 'lucide-react';
 import type { Field, Screen } from '../types';
+import '../pages/Home/HomeScreen.css';
 import './PestGuideScreen.css';
 
 export interface PestGuideScreenProps {
@@ -19,12 +21,9 @@ export interface PestGuideScreenProps {
 /**
  * Bilgi Rehberi temiz başlangıç yüzeyi.
  * Üst navigasyon ve drawer App.tsx içindeki ortak TarlaPusula kabuğundan gelir.
- * Eski rehber içeriği PestGuideScreenLegacy.tsx içinde yedek olarak korunur.
+ * Alt navigasyon HomeScreen ile aynı sınıfları, ikonları ve sıralamayı kullanır.
  */
-export default function PestGuideScreen({
-  setScreen,
-  setSideMenuOpen,
-}: PestGuideScreenProps) {
+export default function PestGuideScreen({ setScreen }: PestGuideScreenProps) {
   const navigate = (screen: Screen) => setScreen?.(screen);
 
   return (
@@ -33,30 +32,40 @@ export default function PestGuideScreen({
         <div className="tp-knowledge-empty" aria-hidden="true" />
       </main>
 
-      <nav className="tp-knowledge-bottom-nav" aria-label="Ana menü">
+      <nav className="tp-bottom" aria-label="Ana menü">
         <button type="button" onClick={() => navigate('home')}>
-          <span aria-hidden="true">⌂</span>
-          <small>Ana Sayfa</small>
+          <span className="tp-bottom-icon-shell">
+            <House className="tp-bottom-line-icon" aria-hidden="true" strokeWidth={1.8} />
+          </span>
+          Ana Sayfa
         </button>
-        <button type="button" onClick={() => navigate('home')}>
-          <span aria-hidden="true">▱</span>
-          <small>Tarlalarım</small>
+
+        <button type="button" onClick={() => navigate('weatherHub')} aria-label="Hava Durumu">
+          <span className="tp-bottom-icon-shell">
+            <CloudSun className="tp-bottom-line-icon" aria-hidden="true" strokeWidth={1.8} />
+          </span>
+          Hava Durumu
         </button>
-        <button
-          type="button"
-          className="tp-knowledge-ai"
-          onClick={() => navigate('aiAnalysis')}
-        >
-          <b aria-hidden="true">✦</b>
-          <small>Pusula AI</small>
+
+        <button className="ai" type="button" onClick={() => navigate('aiAnalysis')}>
+          <span className="tp-bottom-ai-shell">
+            <Sparkles className="tp-bottom-line-icon" aria-hidden="true" strokeWidth={1.8} />
+          </span>
+          Pusula AI
         </button>
+
         <button type="button" onClick={() => navigate('calendar')}>
-          <span aria-hidden="true">□</span>
-          <small>Takvim</small>
+          <span className="tp-bottom-icon-shell">
+            <CalendarDays className="tp-bottom-line-icon" aria-hidden="true" strokeWidth={1.8} />
+          </span>
+          Takvim
         </button>
-        <button type="button" onClick={() => setSideMenuOpen?.(true)}>
-          <span aria-hidden="true">•••</span>
-          <small>Daha Fazla</small>
+
+        <button type="button" onClick={() => navigate('home')} aria-label="Tarlalarım">
+          <span className="tp-bottom-icon-shell">
+            <MapPinned className="tp-bottom-line-icon" aria-hidden="true" strokeWidth={1.8} />
+          </span>
+          Tarlalarım
         </button>
       </nav>
     </div>
