@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
-import { fetchHomeSatelliteDate } from '../services/homeSatelliteDate.service';
+import {
+  fetchHomeSatelliteScene,
+  type HomeSatelliteSceneInfo,
+} from '../services/homeSatelliteDate.service';
 
 export function useHomeSatelliteDate({
   fieldKey,
@@ -10,11 +13,11 @@ export function useHomeSatelliteDate({
   parcelGeometry?: unknown;
   satelliteDate?: unknown;
 }) {
-  const [resolvedFromService, setResolvedFromService] = useState('');
+  const [sceneInfo, setSceneInfo] = useState<HomeSatelliteSceneInfo | null>(null);
 
   useEffect(() => {
     let alive = true;
-    setResolvedFromService('');
+    setSceneInfo(null);
 
     if (!fieldKey || !parcelGeometry) {
       return () => {
@@ -22,12 +25,12 @@ export function useHomeSatelliteDate({
       };
     }
 
-    void fetchHomeSatelliteDate(parcelGeometry)
+    void fetchHomeSatelliteScene(parcelGeometry)
       .then((value) => {
-        if (alive && value) setResolvedFromService(value);
+        if (alive) setSceneInfo(value);
       })
       .catch((error) => {
-        console.warn('Sentinel-2 görüntü tarihi alınamadı:', error);
+        console.warn('Sentinel-2 görüntü bilgisi alınamadı:', error);
       });
 
     return () => {
@@ -35,5 +38,13 @@ export function useHomeSatelliteDate({
     };
   }, [fieldKey, parcelGeometry]);
 
-  return resolvedFromService || String(satelliteDate ?? '').trim();
+  const resolvedDate =
+    sceneInfo?.latestImageDate || String(satelliteDate ?? '').trim();
+
+  return {
+    resolvedDate,
+    cloudCover: sceneInfo?.cloudCover ?? null,
+    collection: sceneInfo?.collection ?? '',
+    sceneId: sceneInfo?.sceneId ?? '',
+  };
 }
