@@ -1,4 +1,5 @@
 import { CalendarDays, CloudSun, House, MapPinned, Sparkles } from 'lucide-react';
+import KnowledgeLibrary from '../features/knowledge/components/KnowledgeLibrary';
 import type { Field, Screen } from '../types';
 import '../pages/Home/HomeScreen.css';
 import './PestGuideScreen.css';
@@ -29,7 +30,7 @@ export default function PestGuideScreen({ setScreen }: PestGuideScreenProps) {
   return (
     <div className="tp-knowledge-page">
       <main className="tp-knowledge-canvas" aria-label="Bilgi Rehberi">
-        <div className="tp-knowledge-empty" aria-hidden="true" />
+        <KnowledgeLibrary />
       </main>
 
       <nav className="tp-bottom" aria-label="Ana menü">
