@@ -4,14 +4,12 @@ import {
   type HomeSatelliteSceneInfo,
 } from '../services/homeSatelliteDate.service';
 
-export function useHomeSatelliteDate({
+export function useHomeSatelliteSceneInfo({
   fieldKey,
   parcelGeometry,
-  satelliteDate,
 }: {
   fieldKey: string;
   parcelGeometry?: unknown;
-  satelliteDate?: unknown;
 }) {
   const [sceneInfo, setSceneInfo] = useState<HomeSatelliteSceneInfo | null>(null);
 
@@ -38,13 +36,22 @@ export function useHomeSatelliteDate({
     };
   }, [fieldKey, parcelGeometry]);
 
-  const resolvedDate =
-    sceneInfo?.latestImageDate || String(satelliteDate ?? '').trim();
+  return sceneInfo;
+}
 
-  return {
-    resolvedDate,
-    cloudCover: sceneInfo?.cloudCover ?? null,
-    collection: sceneInfo?.collection ?? '',
-    sceneId: sceneInfo?.sceneId ?? '',
-  };
+/**
+ * Existing callers expect this hook to return a plain date string.
+ * Keep that contract while Earth Search scene metadata is exposed separately.
+ */
+export function useHomeSatelliteDate({
+  fieldKey,
+  parcelGeometry,
+  satelliteDate,
+}: {
+  fieldKey: string;
+  parcelGeometry?: unknown;
+  satelliteDate?: unknown;
+}) {
+  const sceneInfo = useHomeSatelliteSceneInfo({ fieldKey, parcelGeometry });
+  return sceneInfo?.latestImageDate || String(satelliteDate ?? '').trim();
 }
