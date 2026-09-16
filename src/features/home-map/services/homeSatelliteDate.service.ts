@@ -6,6 +6,13 @@ type GeometryLike = {
   geometry?: GeometryLike | null;
 };
 
+export type HomeSatelliteSceneInfo = {
+  latestImageDate: string;
+  cloudCover: number | null;
+  collection: string;
+  sceneId: string;
+};
+
 function isPosition(value: unknown): value is Position {
   return (
     Array.isArray(value) &&
@@ -57,12 +64,14 @@ function getExteriorRing(source: unknown): Position[] | null {
 }
 
 /**
- * Returns the acquisition date of the newest sufficiently clear Sentinel-2 L2A
- * scene intersecting the selected parcel. No mock/fallback date is generated.
+ * Returns metadata for the newest sufficiently clear Sentinel-2 L2A scene
+ * intersecting the selected parcel. No mock/fallback values are generated.
  */
-export async function fetchHomeSatelliteDate(parcelGeometry: unknown) {
+export async function fetchHomeSatelliteScene(
+  parcelGeometry: unknown,
+): Promise<HomeSatelliteSceneInfo | null> {
   const ring = getExteriorRing(parcelGeometry);
-  if (!ring) return '';
+  if (!ring) return null;
 
   const scene = await findLatestSentinel2Scene({
     ring,
@@ -70,5 +79,21 @@ export async function fetchHomeSatelliteDate(parcelGeometry: unknown) {
     maxCloudCover: 30,
   });
 
-  return String(scene?.datetime ?? '').trim();
+  if (!scene) return null;
+
+  return {
+    latestImageDate: String(scene.datetime ?? '').trim(),
+    cloudCover:
+      scene.cloudCover != null && Number.isFinite(Number(scene.cloudCover))
+        ? Number(scene.cloudCover)
+        : null,
+    collection: String(scene.collection ?? 'sentinel-2-l2a'),
+    sceneId: String(scene.id ?? ''),
+  };
+}
+
+/** Backwards-compatible date-only helper. */
+export async function fetchHomeSatelliteDate(parcelGeometry: unknown) {
+  const scene = await fetchHomeSatelliteScene(parcelGeometry);
+  return scene?.latestImageDate ?? '';
 }
