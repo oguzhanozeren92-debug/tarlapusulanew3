@@ -1,0 +1,119 @@
+name: TarlaPusula Main CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Typecheck (legacy debt report)
+        continue-on-error: true
+        run: npm run typecheck
+      - name: Lint (legacy debt report)
+        continue-on-error: true
+        run: npm run lint
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build
+
+  model-gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: services/model-gateway/requirements.txt
+      - name: Install model gateway dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r services/model-gateway/requirements.txt
+      - name: Compile model gateway Python
+        run: python -m compileall -q services/model-gateway
+      - name: Import model engines and verify deploy routes
+        env:
+          PYTHONPATH: services/model-gateway
+        run: |
+          python - <<'PY'
+          from datetime import date
+
+          import aquacrop
+          import pcse
+          import pyfao56
+          from app import app
+          from aquacrop_runner import AquaCropPilotRequest, run_aquacrop_pilot
+          from dual_app import app as compatibility_app
+          from engine_registry import ENGINE_REGISTRY
+          from pcse_runner import PCSEPhenologyPilotRequest, run_pcse_phenology_pilot
+          from pyfao56_dual_runner import PyFao56DualKcShadowRequest, run_pyfao56_dual_kc_shadow
+
+          assert app is not None
+          assert compatibility_app is app
+          assert app.version == '0.5.0'
+
+          route_paths = {route.path for route in app.routes}
+          required_routes = {
+              '/health',
+              '/v1/registry',
+              '/v1/irrigation/pyfao56/shadow',
+              '/v1/irrigation/pyfao56/dual-kc-shadow',
+              '/v1/phenology/pcse/readiness',
+              '/v1/phenology/pcse/pilot',
+              '/v1/scenario/aquacrop/readiness',
+              '/v1/scenario/aquacrop/pilot',
+          }
+          missing_routes = required_routes - route_paths
+          assert not missing_routes, f'Missing deploy routes: {sorted(missing_routes)}'
+
+          assert AquaCropPilotRequest is not None
+          assert run_aquacrop_pilot is not None
+          assert PCSEPhenologyPilotRequest is not None
+          assert run_pcse_phenology_pilot is not None
+          assert PyFao56DualKcShadowRequest is not None
+          assert run_pyfao56_dual_kc_shadow is not None
+          assert ENGINE_REGISTRY['pyfao56']['package'] == 'pyfao56==1.4.3'
+          assert ENGINE_REGISTRY['pcse']['package'] == 'pcse==6.0.13'
+          assert ENGINE_REGISTRY['pcse']['pilot_model'] == 'Wofost72_PP'
+          assert ENGINE_REGISTRY['pcse']['water_stress_authority'] is False
+          assert ENGINE_REGISTRY['aquacrop']['package'] == 'aquacrop==3.1.0'
+
+          request = PCSEPhenologyPilotRequest(
+              field_id='ci-field',
+              latitude=39.0,
+              longitude=32.0,
+              crop_key='wheat',
+              variety_key='Winter_wheat_101',
+              planting_date=date(2025, 10, 15),
+              as_of_date=date(2026, 3, 1),
+          )
+          assert request.crop_key == 'wheat'
+          assert request.max_duration_days == 365
+
+          print('gateway-version:', app.version)
+          print('gateway-routes:', sorted(required_routes))
+          print('pyfao56:', getattr(pyfao56, '__version__', 'imported'))
+          print('pcse:', getattr(pcse, '__version__', 'imported'))
+          print('aquacrop:', getattr(aquacrop, '__version__', 'imported'))
+          PY
+      - name: Dual-Kc pyfao56 smoke
+        env:
+          PYTHONPATH: services/model-gateway
+        run: python services/model-gateway/dual_smoke_test.py
