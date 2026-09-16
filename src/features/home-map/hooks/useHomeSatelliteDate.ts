@@ -4,6 +4,12 @@ import {
   type HomeSatelliteSceneInfo,
 } from '../services/homeSatelliteDate.service';
 
+declare global {
+  interface Window {
+    __tpHomeSatelliteSceneInfo?: HomeSatelliteSceneInfo | null;
+  }
+}
+
 export function useHomeSatelliteSceneInfo({
   fieldKey,
   parcelGeometry,
@@ -17,6 +23,10 @@ export function useHomeSatelliteSceneInfo({
     let alive = true;
     setSceneInfo(null);
 
+    if (typeof window !== 'undefined') {
+      window.__tpHomeSatelliteSceneInfo = null;
+    }
+
     if (!fieldKey || !parcelGeometry) {
       return () => {
         alive = false;
@@ -25,7 +35,11 @@ export function useHomeSatelliteSceneInfo({
 
     void fetchHomeSatelliteScene(parcelGeometry)
       .then((value) => {
-        if (alive) setSceneInfo(value);
+        if (!alive) return;
+        setSceneInfo(value);
+        if (typeof window !== 'undefined') {
+          window.__tpHomeSatelliteSceneInfo = value;
+        }
       })
       .catch((error) => {
         console.warn('Sentinel-2 görüntü bilgisi alınamadı:', error);
