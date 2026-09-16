@@ -1,7 +1,7 @@
 # Türkçe Bilgi Kütüphanesi
 
-Mevcut Bilgi Rehberi ekranında **Saha rehberi / Bilgi kütüphanesi** geçişi eklendi.
-Saha rehberindeki mevcut içerik korunur. Kütüphane; Türkçe karakter duyarlı arama,
+Güncel ana daldaki boş Bilgi Rehberi yüzeyine Türkçe kütüphane eklendi.
+Son alt navigasyon ve ortak uygulama kabuğu korunur. Kütüphane; Türkçe karakter duyarlı arama,
 ürün/konu/kaynak filtresi, özgün ad, kaynak sürümü, atıf ve lisans bağlantısı sunar.
 
 ## Gerçekte aktarılan içerik

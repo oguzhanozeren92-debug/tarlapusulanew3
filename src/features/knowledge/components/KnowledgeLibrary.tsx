@@ -48,7 +48,7 @@ export default function KnowledgeLibrary() {
       <a href={source.url} target="_blank" rel="noopener noreferrer">Kaynağı incele ↗</a>
     </aside>}
     <p role="status" className="tp-knowledge-count">{entries.length} kayıt · {entries.filter((entry) => entry.contentType === 'article').length} rehber metni · {entries.filter((entry) => entry.contentType === 'label').length} sözlük etiketi</p>
-    {entries.length === 0 ? <div className="tp-knowledge-empty">
+    {entries.length === 0 ? <div className="tp-library-empty">
       <h2>{source && !knowledgeEntries.some((entry) => entry.sourceId === source.id) ? 'Bu kaynaktan henüz Türkçe içerik aktarılmadı' : 'Aramana uygun kayıt bulunamadı'}</h2>
       <p>{source?.limitation ?? 'Başka bir sözcük deneyebilir veya filtreleri temizleyebilirsin.'}</p>
       <button type="button" onClick={() => { setQuery(''); setSourceId('all'); setCrop('all'); setKind('all'); }}>Filtreleri temizle</button>
