@@ -39,13 +39,7 @@ export function titleCaseEachWordTr(value: unknown) {
   return result;
 }
 
-export function formatHomeSatelliteDate(value: unknown) {
-  const raw = String(value ?? '').trim();
-
-  if (!raw) {
-    return '';
-  }
-
+function formatSatelliteDateOnly(raw: string) {
   const isoParts = raw.split('-');
 
   if (
@@ -64,10 +58,7 @@ export function formatHomeSatelliteDate(value: unknown) {
   const normalized = raw.replaceAll('/', '.').replaceAll('-', '.');
   const trParts = normalized.split('.');
 
-  if (
-    trParts.length === 3 &&
-    trParts[2].length === 4
-  ) {
+  if (trParts.length === 3 && trParts[2].length === 4) {
     const day = trParts[0].padStart(2, '0');
     const month = trParts[1].padStart(2, '0');
     const year = trParts[2];
@@ -86,4 +77,35 @@ export function formatHomeSatelliteDate(value: unknown) {
     month: '2-digit',
     year: 'numeric',
   }).format(date);
+}
+
+export function formatHomeSatelliteDate(value: unknown) {
+  const raw = String(value ?? '').trim();
+
+  if (!raw) {
+    return '';
+  }
+
+  const dateLabel = formatSatelliteDateOnly(raw);
+  const scene =
+    typeof window !== 'undefined'
+      ? window.__tpHomeSatelliteSceneInfo
+      : null;
+
+  if (!scene || String(scene.latestImageDate ?? '').trim() !== raw) {
+    return dateLabel;
+  }
+
+  const sourceLabel = String(scene.collection ?? '')
+    .toLowerCase()
+    .includes('sentinel-2')
+    ? 'Sentinel-2'
+    : String(scene.collection ?? '').trim();
+
+  const cloudLabel =
+    scene.cloudCover != null && Number.isFinite(Number(scene.cloudCover))
+      ? ` · Bulut %${Math.round(Number(scene.cloudCover))}`
+      : '';
+
+  return `${dateLabel}${sourceLabel ? ` · ${sourceLabel}` : ''}${cloudLabel}`;
 }
