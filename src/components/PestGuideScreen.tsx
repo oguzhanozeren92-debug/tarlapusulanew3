@@ -1,52 +1,74 @@
-import { useMemo, useState } from 'react';
-import { BookOpen, CalendarDays, ChevronRight, CloudSun, Droplets, FlaskConical, House, Leaf, MapPinned, Microscope, Search, ShieldAlert, Sparkles, Sprout, Tractor, Wheat } from 'lucide-react';
+import { CalendarDays, CloudSun, House, MapPinned, Sparkles } from 'lucide-react';
+import KnowledgeLibrary from '../features/knowledge/components/KnowledgeLibrary';
 import type { Field, Screen } from '../types';
-import { KNOWLEDGE_GUIDE_EXTRA_ARTICLES } from './knowledgeGuideExtraArticles';
-import { KNOWLEDGE_GUIDE_MORE_ARTICLES } from './knowledgeGuideMoreArticles';
-import { KNOWLEDGE_GUIDE_FIELD_ARTICLES } from './knowledgeGuideFieldArticles';
-import { KNOWLEDGE_GUIDE_SOIL_HEALTH_ARTICLES } from './knowledgeGuideSoilHealthArticles';
 import '../pages/Home/HomeScreen.css';
 import './PestGuideScreen.css';
 
-export interface PestGuideScreenProps { fields:Field[]; selectedFieldId?:string; screen?:Screen|string; desktopMenuItems?:Array<{screen:Screen|string;icon?:string;label:string;badge?:string}>; sideMenuOpen?:boolean; setScreen?:(screen:Screen)=>void; setSideMenuOpen?:(open:boolean)=>void }
-type GuideArticle={id:string;category:string;title:string;summary:string;tags:string[];sections:Array<{title:string;text:string}>};
-const CATEGORIES=[
-{id:'Bitkisel Üretim',icon:Sprout,text:'Ekimden hasada temel yetiştiricilik bilgileri'},
-{id:'Bitki Besleme',icon:Leaf,text:'Besin elementleri, eksiklik belirtileri ve besleme'},
-{id:'Toprak',icon:FlaskConical,text:'Toprak yapısı, pH, organik madde ve analiz okuma'},
-{id:'Sulama',icon:Droplets,text:'Su ihtiyacı, sulama zamanı ve yöntemleri'},
-{id:'Hastalık ve Zararlılar',icon:ShieldAlert,text:'Belirti tanıma, izleme ve mücadele ilkeleri'},
-{id:'Tarla İşlemleri',icon:Tractor,text:'Ekim, uygulama, örnekleme ve hasat işlemleri'},
-{id:'Uydu ve Tarım Teknolojisi',icon:MapPinned,text:'NDVI, radar, veri kalitesi ve hassas tarım'},
-{id:'Tarım Sözlüğü',icon:BookOpen,text:'Tarımda sık kullanılan kavramların Türkçe açıklamaları'}];
-const CORE_ARTICLES:GuideArticle[]=[
-{id:'ndvi',category:'Uydu ve Tarım Teknolojisi',title:'NDVI Nedir, Nasıl Yorumlanır?',summary:'Bitki örtüsünü uydu görüntülerinden izlemek için kullanılan NDVI göstergesinin temel mantığı.',tags:['NDVI','uydu','bitki sağlığı'],sections:[{title:'NDVI nedir?',text:'NDVI, yakın kızılötesi ve kırmızı ışık bantları arasındaki farktan hesaplanan bir bitki örtüsü göstergesidir. Değerler genel olarak -1 ile +1 arasındadır.'},{title:'Tek başına teşhis değildir',text:'NDVI değişimi hastalık, su stresi, beslenme, gelişim dönemi veya hasat gibi farklı nedenlerden oluşabilir. Hava, fenoloji ve saha gözlemleriyle birlikte değerlendirilmelidir.'}]},
-{id:'ndre',category:'Uydu ve Tarım Teknolojisi',title:'NDRE Nedir?',summary:'Yoğun bitki örtüsünde kırmızı kenar bandından yararlanan vejetasyon indeksine giriş.',tags:['NDRE','kırmızı kenar','uydu'],sections:[{title:'Kullanım',text:'NDRE kırmızı kenar ve yakın kızılötesi bantlarını kullanır. Yoğun bitki örtüsündeki spektral değişimleri izlemeye yardımcı olabilir; tek başına besin veya hastalık teşhisi değildir.'}]},
-{id:'savi',category:'Uydu ve Tarım Teknolojisi',title:'SAVI Nedir?',summary:'Seyrek bitki örtüsünde toprak parlaklığı etkisini azaltmayı amaçlayan vejetasyon indeksi.',tags:['SAVI','toprak','uydu'],sections:[{title:'Ne zaman yararlı?',text:'Yeni çıkış yapan veya bitki örtüsü seyrek alanlarda görünen toprağın indeks üzerindeki etkisini azaltmak için kullanılabilir.'}]},
-{id:'radar',category:'Uydu ve Tarım Teknolojisi',title:'Sentinel-1 Radar Verisi Ne Anlatır?',summary:'Radar gözlemleriyle tarla yüzeyindeki değişimleri izleme yaklaşımı.',tags:['Sentinel-1','VH','VV','radar'],sections:[{title:'Radarın farkı',text:'Sentinel-1 radar kullanır. VV ve VH geri saçılımı yüzey pürüzlülüğü, bitki yapısı ve nem değişimleriyle ilişkili sinyaller taşıyabilir; doğrudan toprak nemi ölçümü olarak yorumlanmamalıdır.'}]},
-{id:'ph',category:'Toprak',title:'Toprak pH Değeri Ne Anlama Gelir?',summary:'Toprağın asitlik ve alkalilik durumunun besin alınabilirliğiyle ilişkisi.',tags:['pH','toprak analizi'],sections:[{title:'Neden önemli?',text:'pH besin elementlerinin alınabilirliğini ve topraktaki biyolojik süreçleri etkiler. Kesin karar için uygun yöntemle alınmış laboratuvar analizi esas alınmalıdır.'}]},
-{id:'organic',category:'Toprak',title:'Toprak Organik Maddesi',summary:'Organik maddenin toprak yapısı, su tutma ve besin döngüsündeki rolü.',tags:['organik madde','toprak'],sections:[{title:'Görevi',text:'Organik madde agregat yapısını, su tutma kapasitesini, biyolojik faaliyeti ve besin döngüsünü destekler. Sonuçlar toprak bünyesi ve yerel koşullarla birlikte değerlendirilmelidir.'}]},
-{id:'texture',category:'Toprak',title:'Kum, Silt ve Kil: Toprak Bünyesi',summary:'Toprak bünyesinin su tutma, havalanma ve işlenebilirliğe etkileri.',tags:['kil','kum','silt'],sections:[{title:'Temel fark',text:'Kumlu topraklar genellikle daha hızlı drene olur; killi topraklar daha fazla su tutabilir. Tınlı yapılar farklı tane boylarının karışımını içerir.'}]},
-{id:'nitrogen',category:'Bitki Besleme',title:'Azot: Bitkide Görevi ve Eksiklik Şüphesi',summary:'Azotun büyüme ve klorofil oluşumundaki rolü ile gözlenebilen işaretler.',tags:['azot','N','besleme'],sections:[{title:'Görevi',text:'Azot protein, klorofil ve birçok bitki bileşiğinin yapısında bulunur. Yetersizlikte özellikle yaşlı yapraklarda soluklaşma ve gelişme geriliği görülebilir.'},{title:'Dikkat',text:'Yaprak rengi tek başına azot eksikliğini kanıtlamaz. Su stresi, kök sorunu ve başka beslenme sorunları benzer belirti oluşturabilir.'}]},
-{id:'phosphorus',category:'Bitki Besleme',title:'Fosforun Bitkideki Rolü',summary:'Fosforun enerji aktarımı ve gelişimdeki temel görevleri.',tags:['fosfor','P','besleme'],sections:[{title:'Görevi',text:'Fosfor enerji aktarımı ve birçok metabolik süreçte görev alır. Toprak pH değeri ve sıcaklık alınabilirliğini etkileyebilir.'}]},
-{id:'potassium',category:'Bitki Besleme',title:'Potasyum: Su Dengesi ve Dayanıklılık',summary:'Potasyumun su düzenleme ve enzim faaliyetlerindeki rolü.',tags:['potasyum','K','besleme'],sections:[{title:'Görevi',text:'Potasyum stomaların çalışması, su dengesi ve enzim faaliyetleriyle ilişkili süreçlerde rol oynar. Besleme kararı analiz ve ürün ihtiyacına göre verilmelidir.'}]},
-{id:'micro',category:'Bitki Besleme',title:'Mikro Besin Elementleri',summary:'Demir, çinko, mangan, bor ve diğer mikro elementlere giriş.',tags:['demir','çinko','bor','mangan'],sections:[{title:'Az miktar, önemli görev',text:'Mikro elementlere daha düşük miktarlarda ihtiyaç duyulur ancak yetersizlikleri gelişimi etkileyebilir. Belirtiler elemente, ürüne ve yaprak yaşına göre değişir.'}]},
-{id:'irrigation-time',category:'Sulama',title:'Sulama Zamanı Nasıl Belirlenir?',summary:'Hava, toprak, ürün dönemi ve kök bölgesini birlikte değerlendirme.',tags:['sulama','toprak nemi','ET'],sections:[{title:'Tek veri yeterli değildir',text:'Sulama zamanı; yağış, evapotranspirasyon, kök bölgesi su durumu, toprağın su tutma kapasitesi, ürünün gelişim dönemi ve son sulama kaydı birlikte değerlendirilerek belirlenir.'}]},
-{id:'et',category:'Sulama',title:'Evapotranspirasyon (ET) Nedir?',summary:'Toprak yüzeyinden buharlaşma ve bitkiden terleme yoluyla gerçekleşen toplam su kaybı.',tags:['ET','ET0','ETc','su'],sections:[{title:'ET0 ve ETc',text:'Referans evapotranspirasyon atmosferik su talebini temsil eder. Ürün evapotranspirasyonu, ürün katsayıları ve gelişim koşullarıyla ürünün su tüketimini tahmin etmek için değerlendirilir.'}]},
-{id:'drip',category:'Sulama',title:'Damla Sulamada Temel İlkeler',summary:'Suyu kök bölgesine kontrollü uygularken izlenecek temel noktalar.',tags:['damla sulama','su'],sections:[{title:'Kontrol',text:'Damlatıcı debisi, basınç, filtrasyon, sulama süresi, ıslatılan alan ve kök derinliği birlikte değerlendirilmelidir. Sık sulama her zaman doğru sulama anlamına gelmez.'}]},
-{id:'spray-weather',category:'Tarla İşlemleri',title:'Uygulamalarda Hava Koşulları Neden Önemlidir?',summary:'Rüzgâr, yağış, sıcaklık ve nemin tarla uygulamalarına etkisini anlamak.',tags:['uygulama','rüzgâr','yağış'],sections:[{title:'Uygulama penceresi',text:'Rüzgâr sürüklenmeyi, yağış yıkanmayı, sıcaklık ve bağıl nem ise damlacık davranışını etkileyebilir. Bitki koruma ürünü kullanılıyorsa yürürlükteki etiket koşulları esas alınmalıdır.'}]},
-{id:'soil-sampling',category:'Tarla İşlemleri',title:'Toprak Örneği Nasıl Alınır?',summary:'Laboratuvar sonucunun tarlayı temsil etmesi için doğru örnekleme yaklaşımı.',tags:['toprak örneği','analiz'],sections:[{title:'Temsil edici örnek',text:'Benzer özellikteki bölümden birden fazla noktadan alt örnek alınarak karıştırılır. Yol kenarı, yığın ve su birikintisi gibi sıra dışı noktalar genel örneğe dahil edilmemelidir.'}]},
-{id:'scouting',category:'Hastalık ve Zararlılar',title:'Tarla Gözlemi Nasıl Yapılır?',summary:'Sorunu erken fark etmek için düzenli ve kayıtlı tarla kontrolünün temelleri.',tags:['gözlem','zararlı','hastalık'],sections:[{title:'Düzenli izleme',text:'Tarla farklı bölgeleri temsil edecek biçimde gezilmeli; yaprak, gövde, kök ve ürün belirtileri incelenmeli; fotoğraf, tarih ve konum kaydedilmelidir.'}]},
-{id:'integrated-pest',category:'Hastalık ve Zararlılar',title:'Entegre Mücadele Nedir?',summary:'Gözlem, kültürel, biyolojik ve gerektiğinde diğer yöntemleri birlikte ele alan yaklaşım.',tags:['entegre mücadele','IPM'],sections:[{title:'Temel yaklaşım',text:'Doğru teşhis, düzenli izleme ve uygun mücadele yönteminin doğru zamanda seçilmesi esastır. Yerel eşikler ve resmi tavsiyeler dikkate alınmalıdır.'}]},
-{id:'phenology',category:'Bitkisel Üretim',title:'Fenoloji: Bitkinin Gelişim Dönemini Bilmek',summary:'Ekim, çıkış, vejetatif gelişim, çiçeklenme ve olgunlaşma dönemlerinin kararlarla ilişkisi.',tags:['fenoloji','gelişim dönemi'],sections:[{title:'Neden önemli?',text:'Bitkinin su ve besin ihtiyacı ile bazı riskler gelişim dönemine göre değişir. Takvim tarihi tek başına gelişim dönemini kesin olarak göstermez.'}]},
-{id:'germination',category:'Bitkisel Üretim',title:'Çimlenme ve Çıkışı Etkileyen Faktörler',summary:'Tohum kalitesi, sıcaklık, su, oksijen ve ekim derinliğinin çıkışa etkisi.',tags:['çimlenme','ekim','tohum'],sections:[{title:'Temel koşullar',text:'Başarılı çimlenme için canlı tohum, uygun sıcaklık, yeterli nem ve oksijen gerekir. Ekim derinliği ve yüzey kabuklaşması çıkışı etkileyebilir.'}]},
-{id:'harvest',category:'Bitkisel Üretim',title:'Hasat Zamanını Belirleme',summary:'Olgunluk, ürün nemi, hava ve kullanım amacını birlikte değerlendirme.',tags:['hasat','olgunluk'],sections:[{title:'Karar',text:'Hasat zamanı ürüne göre olgunluk, ürün nemi, kalite hedefi, hava tahmini ve depolama koşulları dikkate alınarak belirlenir.'}]},
-{id:'dictionary',category:'Tarım Sözlüğü',title:'Temel Tarım Terimleri',summary:'TarlaPusula içinde karşılaşacağın temel teknik terimlerin kısa Türkçe açıklamaları.',tags:['sözlük','kavramlar'],sections:[{title:'Fenoloji',text:'Bitkilerin mevsimsel gelişim olaylarını ve dönemlerini inceleyen alan.'},{title:'Evapotranspirasyon',text:'Topraktan buharlaşma ile bitkiden terleme sonucu atmosfere geçen toplam su.'},{title:'Kök bölgesi',text:'Bitkinin aktif köklerinin önemli bölümünün bulunduğu toprak hacmi.'},{title:'Vejetasyon indeksi',text:'Sensör bantlarından hesaplanarak bitki örtüsünü izlemeye yardımcı olan sayısal gösterge.'}]}
-];
-const ARTICLES:GuideArticle[]=[...CORE_ARTICLES,...KNOWLEDGE_GUIDE_EXTRA_ARTICLES,...KNOWLEDGE_GUIDE_MORE_ARTICLES,...KNOWLEDGE_GUIDE_FIELD_ARTICLES,...KNOWLEDGE_GUIDE_SOIL_HEALTH_ARTICLES];
+export interface PestGuideScreenProps {
+  fields: Field[];
+  selectedFieldId?: string;
+  screen?: Screen | string;
+  desktopMenuItems?: Array<{
+    screen: Screen | string;
+    icon?: string;
+    label: string;
+    badge?: string;
+  }>;
+  sideMenuOpen?: boolean;
+  setScreen?: (screen: Screen) => void;
+  setSideMenuOpen?: (open: boolean) => void;
+}
 
-export default function PestGuideScreen({setScreen}:PestGuideScreenProps){
- const navigate=(screen:Screen)=>setScreen?.(screen); const[query,setQuery]=useState(''); const[category,setCategory]=useState('Tümü'); const[selectedArticle,setSelectedArticle]=useState<GuideArticle|null>(null);
- const results=useMemo(()=>{const needle=query.trim().toLocaleLowerCase('tr-TR');return ARTICLES.filter(article=>{if(category!=='Tümü'&&article.category!==category)return false;if(!needle)return true;return[article.title,article.summary,article.category,...article.tags].join(' ').toLocaleLowerCase('tr-TR').includes(needle)})},[query,category]);
- return <div className="tp-knowledge-page"><main className="tp-knowledge-canvas" aria-label="Bilgi Rehberi"><section className="tp-knowledge-hero"><span className="tp-knowledge-kicker"><BookOpen size={15}/> TarlaPusula Bilgi Kütüphanesi</span><h1>Bilgi Rehberi</h1><p>Tarla, bitki, toprak, sulama ve tarım teknolojilerini anlaşılır Türkçe ile tek yerde keşfet.</p><label className="tp-knowledge-search"><Search size={19}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Bir konu ara: azot, NDVI, sulama, pH…"/></label></section>{!selectedArticle?<><section className="tp-knowledge-categories"><div className="tp-knowledge-section-title"><div><small>KEŞFET</small><h2>Kategoriler</h2></div></div><div className="tp-knowledge-category-grid">{CATEGORIES.map(item=>{const Icon=item.icon;const active=category===item.id;return <button key={item.id} type="button" className={active?'active':''} onClick={()=>setCategory(active?'Tümü':item.id)}><span><Icon size={22}/></span><strong>{item.id}</strong><small>{item.text}</small></button>})}</div></section><section className="tp-knowledge-library"><div className="tp-knowledge-section-title"><div><small>{category==='Tümü'?'TÜM KONULAR':category.toLocaleUpperCase('tr-TR')}</small><h2>Bilgi Kütüphanesi</h2></div><span>{results.length} konu</span></div><div className="tp-knowledge-article-list">{results.map(article=><button key={article.id} type="button" onClick={()=>setSelectedArticle(article)}><span className="tp-knowledge-article-icon"><Wheat size={20}/></span><span className="tp-knowledge-article-copy"><small>{article.category}</small><strong>{article.title}</strong><p>{article.summary}</p><span className="tp-knowledge-tags">{article.tags.slice(0,3).map(tag=><em key={tag}>{tag}</em>)}</span></span><ChevronRight size={20}/></button>)}{results.length===0&&<div className="tp-knowledge-no-result"><Microscope size={28}/><strong>Bu aramayla eşleşen konu bulunamadı.</strong><span>Farklı bir kelime deneyebilirsin.</span></div>}</div></section><section className="tp-knowledge-note"><Sparkles size={19}/><div><strong>Bilgiyi tarlanla birleştir</strong><p>Rehber genel tarımsal bilgi verir. Tarlana özel değerlendirme için Pusula AI kayıtlı ürün, gelişim dönemi, hava, toprak ve uydu verilerini birlikte ele alır.</p></div></section></>:<article className="tp-knowledge-detail"><button className="tp-knowledge-back" type="button" onClick={()=>setSelectedArticle(null)}>‹ Bilgi Kütüphanesine Dön</button><small>{selectedArticle.category}</small><h2>{selectedArticle.title}</h2><p className="lead">{selectedArticle.summary}</p><div className="tp-knowledge-tags">{selectedArticle.tags.map(tag=><em key={tag}>{tag}</em>)}</div>{selectedArticle.sections.map(section=><section key={section.title}><h3>{section.title}</h3><p>{section.text}</p></section>)}<aside><ShieldAlert size={18}/><p>Bu içerik eğitim ve genel bilgilendirme amaçlıdır. Tarla uygulamalarında analiz sonuçları, yerel koşullar, yürürlükteki resmi bilgiler ve gerektiğinde yetkili uzman değerlendirmesi esas alınmalıdır.</p></aside></article>}</main><nav className="tp-bottom" aria-label="Ana menü"><button type="button" onClick={()=>navigate('home')}><span className="tp-bottom-icon-shell"><House className="tp-bottom-line-icon" strokeWidth={1.8}/></span>Ana Sayfa</button><button type="button" onClick={()=>navigate('weatherHub')}><span className="tp-bottom-icon-shell"><CloudSun className="tp-bottom-line-icon" strokeWidth={1.8}/></span>Hava Durumu</button><button className="ai" type="button" onClick={()=>navigate('aiAnalysis')}><span className="tp-bottom-ai-shell"><Sparkles className="tp-bottom-line-icon" strokeWidth={1.8}/></span>Pusula AI</button><button type="button" onClick={()=>navigate('calendar')}><span className="tp-bottom-icon-shell"><CalendarDays className="tp-bottom-line-icon" strokeWidth={1.8}/></span>Takvim</button><button type="button" onClick={()=>navigate('home')}><span className="tp-bottom-icon-shell"><MapPinned className="tp-bottom-line-icon" strokeWidth={1.8}/></span>Tarlalarım</button></nav></div>
+/**
+ * Bilgi Rehberi temiz başlangıç yüzeyi.
+ * Üst navigasyon ve drawer App.tsx içindeki ortak TarlaPusula kabuğundan gelir.
+ * Alt navigasyon HomeScreen ile aynı sınıfları, ikonları ve sıralamayı kullanır.
+ */
+export default function PestGuideScreen({ setScreen }: PestGuideScreenProps) {
+  const navigate = (screen: Screen) => setScreen?.(screen);
+
+  return (
+    <div className="tp-knowledge-page">
+      <main className="tp-knowledge-canvas" aria-label="Bilgi Rehberi">
+        <KnowledgeLibrary />
+      </main>
+
+      <nav className="tp-bottom" aria-label="Ana menü">
+        <button type="button" onClick={() => navigate('home')}>
+          <span className="tp-bottom-icon-shell">
+            <House className="tp-bottom-line-icon" aria-hidden="true" strokeWidth={1.8} />
+          </span>
+          Ana Sayfa
+        </button>
+
+        <button type="button" onClick={() => navigate('weatherHub')} aria-label="Hava Durumu">
+          <span className="tp-bottom-icon-shell">
+            <CloudSun className="tp-bottom-line-icon" aria-hidden="true" strokeWidth={1.8} />
+          </span>
+          Hava Durumu
+        </button>
+
+        <button className="ai" type="button" onClick={() => navigate('aiAnalysis')}>
+          <span className="tp-bottom-ai-shell">
+            <Sparkles className="tp-bottom-line-icon" aria-hidden="true" strokeWidth={1.8} />
+          </span>
+          Pusula AI
+        </button>
+
+        <button type="button" onClick={() => navigate('calendar')}>
+          <span className="tp-bottom-icon-shell">
+            <CalendarDays className="tp-bottom-line-icon" aria-hidden="true" strokeWidth={1.8} />
+          </span>
+          Takvim
+        </button>
+
+        <button type="button" onClick={() => navigate('home')} aria-label="Tarlalarım">
+          <span className="tp-bottom-icon-shell">
+            <MapPinned className="tp-bottom-line-icon" aria-hidden="true" strokeWidth={1.8} />
+          </span>
+          Tarlalarım
+        </button>
+      </nav>
+    </div>
+  );
 }

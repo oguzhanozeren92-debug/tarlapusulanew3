@@ -1,0 +1,31 @@
+.tp-knowledge { max-width:1100px; margin:auto; padding:24px 20px 110px; color:#171717; background:#fafafa; font-family:inherit; }
+.tp-knowledge * { box-sizing:border-box; }
+.tp-knowledge h1 { font-size:clamp(24px,4vw,34px); margin:6px 0 10px; }
+.tp-knowledge h2 { font-size:18px; margin:12px 0 8px; }
+.tp-knowledge h3 { font-size:15px; }
+.tp-knowledge p { line-height:1.6; margin:8px 0; }
+.tp-knowledge-eyebrow { letter-spacing:.14em; font-size:11px; font-weight:700; color:#666; }
+.tp-knowledge-filters { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:12px; margin:24px 0 16px; }
+.tp-knowledge label { display:flex; flex-direction:column; gap:7px; font-size:13px; font-weight:650; min-width:0; }
+.tp-knowledge input,.tp-knowledge select { min-height:46px; width:100%; min-width:0; padding:10px 12px; border:1px solid #d4d4d4; background:#fff; border-radius:12px; color:#171717; font:inherit; font-size:16px; }
+.tp-knowledge button { background:#171717; color:#fff; border:0; border-radius:10px; min-height:44px; padding:10px 15px; font:inherit; cursor:pointer; }
+.tp-knowledge :focus-visible { outline:3px solid #737373; outline-offset:3px; }
+.tp-knowledge-notice,.tp-library-empty { padding:18px; border:1px solid #ddd; background:#f3f3f3; border-radius:16px; }
+.tp-knowledge-count { color:#555; font-size:13px; }
+.tp-knowledge-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; align-items:start; }
+.tp-knowledge-grid>article { padding:20px; border:1px solid #e0e0e0; border-radius:18px; background:white; }
+.tp-knowledge-badge { font-size:11px; color:#555; background:#f1f1f1; padding:6px 9px; border-radius:8px; display:inline-block; }
+.tp-knowledge-detail { border-top:1px solid #eee; margin-top:16px; padding-top:12px; font-size:14px; }
+.tp-knowledge-detail[hidden] { display:none; }
+.tp-knowledge-original { overflow-wrap:anywhere; }
+.tp-knowledge a { color:#262626; text-decoration:underline; text-underline-offset:3px; overflow-wrap:anywhere; }
+.tp-knowledge-sources { margin-top:28px; border-top:1px solid #ddd; padding-top:18px; }
+.tp-knowledge-sources summary { cursor:pointer; font-weight:650; padding:12px 0; }
+.tp-knowledge-sources article { padding:16px 0; border-bottom:1px solid #e4e4e4; }
+.tp-knowledge-sources small { display:block; color:#666; margin-bottom:10px; }
+@media(max-width:700px) {
+  .tp-knowledge { padding:20px 14px 100px; }
+  .tp-knowledge-filters { grid-template-columns:1fr 1fr; }
+  .tp-knowledge-search { grid-column:1/-1; }
+  .tp-knowledge-grid { grid-template-columns:1fr; }
+}
