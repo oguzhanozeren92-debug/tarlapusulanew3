@@ -3,6 +3,7 @@ import { BookOpen, CalendarDays, ChevronRight, CloudSun, Droplets, FlaskConical,
 import type { Field, Screen } from '../types';
 import { KNOWLEDGE_GUIDE_EXTRA_ARTICLES } from './knowledgeGuideExtraArticles';
 import { KNOWLEDGE_GUIDE_MORE_ARTICLES } from './knowledgeGuideMoreArticles';
+import { KNOWLEDGE_GUIDE_FIELD_ARTICLES } from './knowledgeGuideFieldArticles';
 import '../pages/Home/HomeScreen.css';
 import './PestGuideScreen.css';
 
@@ -41,7 +42,7 @@ const CORE_ARTICLES:GuideArticle[]=[
 {id:'harvest',category:'Bitkisel Üretim',title:'Hasat Zamanını Belirleme',summary:'Olgunluk, ürün nemi, hava ve kullanım amacını birlikte değerlendirme.',tags:['hasat','olgunluk'],sections:[{title:'Karar',text:'Hasat zamanı ürüne göre olgunluk, ürün nemi, kalite hedefi, hava tahmini ve depolama koşulları dikkate alınarak belirlenir.'}]},
 {id:'dictionary',category:'Tarım Sözlüğü',title:'Temel Tarım Terimleri',summary:'TarlaPusula içinde karşılaşacağın temel teknik terimlerin kısa Türkçe açıklamaları.',tags:['sözlük','kavramlar'],sections:[{title:'Fenoloji',text:'Bitkilerin mevsimsel gelişim olaylarını ve dönemlerini inceleyen alan.'},{title:'Evapotranspirasyon',text:'Topraktan buharlaşma ile bitkiden terleme sonucu atmosfere geçen toplam su.'},{title:'Kök bölgesi',text:'Bitkinin aktif köklerinin önemli bölümünün bulunduğu toprak hacmi.'},{title:'Vejetasyon indeksi',text:'Sensör bantlarından hesaplanarak bitki örtüsünü izlemeye yardımcı olan sayısal gösterge.'}]}
 ];
-const ARTICLES:GuideArticle[]=[...CORE_ARTICLES,...KNOWLEDGE_GUIDE_EXTRA_ARTICLES,...KNOWLEDGE_GUIDE_MORE_ARTICLES];
+const ARTICLES:GuideArticle[]=[...CORE_ARTICLES,...KNOWLEDGE_GUIDE_EXTRA_ARTICLES,...KNOWLEDGE_GUIDE_MORE_ARTICLES,...KNOWLEDGE_GUIDE_FIELD_ARTICLES];
 
 export default function PestGuideScreen({setScreen}:PestGuideScreenProps){
  const navigate=(screen:Screen)=>setScreen?.(screen); const[query,setQuery]=useState(''); const[category,setCategory]=useState('Tümü'); const[selectedArticle,setSelectedArticle]=useState<GuideArticle|null>(null);
