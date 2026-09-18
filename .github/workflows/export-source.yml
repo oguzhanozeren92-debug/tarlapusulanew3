@@ -1,0 +1,26 @@
+name: Export Repository Source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/export-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove git metadata
+        run: rm -rf .git
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-source
+          path: .
+          include-hidden-files: true
+          retention-days: 1
